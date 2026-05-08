@@ -6,6 +6,7 @@
   "scripts": {
     "start": "bun --hot app.js",
     "dev": "bun --hot app.js",
+    "seed": "bun seed.js",
     "test": "bun test"
   },
   "keywords": [],
