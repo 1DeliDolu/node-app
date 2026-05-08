@@ -1,10 +1,14 @@
 const User = require('../models/user');
 const Login = require('../models/login');
 const bcrypt = require('bcrypt');
-const sgMail = require('nodemailer');
+const nodemailer = require("nodemailer");
 const crypto = require('crypto');
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: process.env.MAIL_HOST || "localhost",
+  port: parseInt(process.env.MAIL_PORT) || 1025,
+  ignoreTLS: true,
+});
 
 exports.getLogin = (req, res, next) => {
     var errorMessage = req.session.errorMessage;
@@ -116,14 +120,12 @@ exports.postRegister = (req, res, next) => {
         .then(() => {
             res.redirect('/login');
 
-            const msg = {
-                to: email,
-                from: 'info@sadikturan.com',
-                subject: 'Hesap Oluşturuldu.',
-                html: '<h1>Hesabınız başarılı bir şekilde oluşturuldu.</h1>',
-            };
-
-            sgMail.send(msg);
+            transporter.sendMail({
+              to: email,
+              from: process.env.MAIL_FROM || "noreply@node-app.local",
+              subject: "Hesap Oluşturuldu.",
+              html: "<h1>Hesabınız başarılı bir şekilde oluşturuldu.</h1>",
+            });
 
         }).catch(err => {
             if (err.name == 'ValidationError') {
@@ -178,19 +180,17 @@ exports.postReset = (req, res, next) => {
             }).then(result => {
                 res.redirect('/');
 
-                const msg = {
-                    to: email,
-                    from: 'info@sadikturan.com',
-                    subject: 'Parola Reset',
-                    html: `
-                    
+                transporter.sendMail({
+                  to: email,
+                  from: process.env.MAIL_FROM || "noreply@node-app.local",
+                  subject: "Parola Reset",
+                  html: `
                         <p>Parolanızı güncellemek için aşağıdaki linke tıklayınız.</p>
                         <p>
-                            <a href="http://localhost:3000/reset-password/${token}">reset password </a>
+                            <a href="http://localhost:3000/reset-password/${token}">reset password</a>
                         </p>
                     `,
-                };
-                sgMail.send(msg);
+                });
 
             }).catch(err => { next(err); });
 

@@ -20,7 +20,7 @@ const accountRoutes = require('./routes/account');
 const errorController = require('./controllers/errors');
 
 const User = require('./models/user');
-const ConnectionString = 'mongodb+srv://sadikturan:WbQ5vdSRiQIfcmdp@cluster0-4nd5p.mongodb.net/node-app?retryWrites=true';
+const ConnectionString = process.env.MONGODB_URI;
 
 var store = new mongoDbStore({
     uri: ConnectionString,
@@ -39,15 +39,17 @@ const storage = multer.diskStorage({
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(multer({ storage: storage }).single('image'));
 app.use(cookieParser());
-app.use(session({
-    secret: 'keyboard cat',
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "keyboard cat",
     resave: false,
     saveUninitialized: false,
     cookie: {
-        maxAge: 3600000
+      maxAge: 3600000,
     },
-    store: store
-}));
+    store: store,
+  }),
+);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
